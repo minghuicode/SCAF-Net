@@ -11,9 +11,18 @@ conda env create -f environment.yml
 
 ## Dataset Downloads
 
-downloads DLR-3K dataset 
+downloads DLR-3K dataset at [dlr.de](https://www.dlr.de/eoc/en/desktopdefault.aspx/tabid-12760/22294_read-52777)
+
+```
+cd SCAF-Net/data
+wget https://pba-freesoftware.eoc.dlr.de/MunichDatasetVehicleDetection-2015-old.zip
+unzip MunichDatasetVehicleDetection-2015-old.zip
+ln -sf MunichDatasetVehicleDetection-2015-old/Train dlr
+```
 
 ## Model Training
+
+There are total 10 labeled aerial images. We use 5 of them for training, others for test.
 
 ```
 cd SCAF-Net
