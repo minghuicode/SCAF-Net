@@ -30,3 +30,25 @@ conda activate torch
 python train.py
 ```
 
+## Model Evaluation
+
+To evaluate model performance on other 5 labeled aerial images, just run test file.
+
+```
+cd SCAF-Net
+conda activate torch
+python test.py --evaluation
+```
+
+## Predict
+
+To predict several unseen aerial images, run test files as follow.
+Visual output will be saved at `output` folder.
+
+```
+cd SCAF-Net
+conda activate torch
+mkdir input
+cp data/dlr/*JPG input/
+python test.py
+``` 
