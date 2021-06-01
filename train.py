@@ -78,8 +78,7 @@ def train(model_name='scaf'):
     train a model from scratch 
     '''
 
-    logtxt = 'checkpoints/mylog.txt'
-    logtxt = os.path.join('checkpoints', 'log-'+model_name+'.txt')
+    logtxt = 'checkpoints/mylog.txt' 
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -97,9 +96,7 @@ def train(model_name='scaf'):
                                 adl_drop_threshold=opt.adl_drop_threshold).to(device)
     else:
         model = darknet.SCAFNet(adl_drop_rate=opt.adl_drop_rate,
-                                adl_drop_threshold=opt.adl_drop_threshold).to(device)
-    model = darknet.DetectNet(adl_drop_rate=opt.adl_drop_rate,
-                            adl_drop_threshold=opt.adl_drop_threshold).to(device)
+                                adl_drop_threshold=opt.adl_drop_threshold).to(device) 
     model.apply(weights_init_normal)
   
     # If specified we start from checkpoint
@@ -123,21 +120,6 @@ def train(model_name='scaf'):
     )
 
     optimizer = torch.optim.Adam(model.parameters())
-
-    metrics = [
-        "grid_size",
-        "loss",
-        "x",
-        "y",
-        "w",
-        "h",
-        "conf",
-        "recall50",
-        "recall75",
-        "precision",
-        "conf_obj",
-        "conf_noobj",
-    ]
 
     yolo_layers = [model.detect.small_vehicle.yolo,
                    model.detect.large_vehicle.yolo]
@@ -183,20 +165,23 @@ def train(model_name='scaf'):
 
             log_str = "\n---- [Epoch %d/%d, Batch %d/%d] ----\n" % (
                 epoch, opt.epochs, batch_i, len(dataloader))
-
+ 
             metric_table = [
-                ["Metrics", *[f"YOLO Layer {i}" for i in range(len(yolo_layers))]]]
+                ["Layer", "Grid", "Branch Loss"]
+            ]
 
-            # Log metrics at each YOLO layer
-            for i, metric in enumerate(metrics):
-                formats = {m: "%.6f" for m in metrics}
-                formats["grid_size"] = "%2d"
-                formats["cls_acc"] = "%.2f%%"
-                row_metrics = [formats[metric] % yolo.metrics.get(
-                    metric, 0) for yolo in yolo_layers]
-                row_metrics = [formats[metric] % yolo.metrics.get(
-                    metric, 0) for yolo in yolo_layers]
-                metric_table += [[metric, *row_metrics]]
+            # Log metrics at each Head layer
+            gg = model.detect.small_vehicle.yolo.metrics.get("grid_size",0)
+            loss1 = model.detect.small_vehicle.yolo.metrics.get("loss",0)
+            loss2 =  model.detect.large_vehicle.yolo.metrics.get("loss",0)
+            loss3 = loss_item - loss1 - loss2 
+            # small layer 
+            small_metrics = [ "vehicle small", "%2d" % gg, "%.2f" % loss1]
+            large_metrics = [ "vehicle large", "%2d" % (gg//2), "%.2f" % loss2]
+            scene_metrics = [ "scene context", "%2d" % (gg//4), "%.2f" % loss3] 
+            metric_table.append(small_metrics)
+            metric_table.append(large_metrics)
+            metric_table.append(scene_metrics) 
 
             log_str += AsciiTable(metric_table).table
             log_str += f"\nTotal loss {loss_item}"
